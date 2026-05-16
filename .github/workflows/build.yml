@@ -1,4 +1,4 @@
-name: Build All Platforms
+name: Build and Release
 
 on:
   workflow_dispatch:
@@ -10,23 +10,35 @@ env:
   JAVA_VERSION: '21'
   JAVA_DISTRO: 'temurin'
   JAVAFX_VERSION: '21.0.6'
+  APP_NAME: 'DiskAnalyzer'
+  APP_VERSION: ${{ github.ref_name }}
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
+    name: Build on ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
             platform: Windows-x64
             javafx-classifier: 'windows'
+            jpackage-type: 'exe'
+            jpackage-args: '--win-dir-chooser --win-menu --win-shortcut'
+            artifact-ext: 'exe'
           - os: macos-latest
             platform: macOS-aarch64
             javafx-classifier: 'mac-aarch64'
+            jpackage-type: 'dmg'
+            jpackage-args: ''
+            artifact-ext: 'dmg'
           - os: ubuntu-latest
             platform: Linux-x64
             javafx-classifier: 'linux'
+            jpackage-type: 'deb'
+            jpackage-args: '--linux-deb-maintainer "DiskAnalyzer Team" --linux-shortcut'
+            artifact-ext: 'deb'
 
     steps:
       - uses: actions/checkout@v5
@@ -38,6 +50,7 @@ jobs:
           distribution: ${{ env.JAVA_DISTRO }}
 
       - name: Verify JDK
+        shell: bash
         run: |
           java -version
           javac -version
@@ -77,63 +90,58 @@ jobs:
             --no-header-files \
             --no-man-pages
 
-      - name: Install WiX Toolset (Windows only)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          dotnet tool install --global wix --version 5.*
-          echo "C:\Users\runneradmin\.dotnet\tools" >> $env:GITHUB_PATH
-          wix --version
-
-      - name: Package with jpackage (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          New-Item -Path build/pkg -ItemType Directory -Force
-          jpackage --type app-image `
-            --name DiskAnalyzer `
-            --input target `
-            --main-jar DiskAnalyzer.jar `
-            --runtime-image build/jre `
-            --dest build/pkg
-
-      - name: Package with jpackage (macOS)
-        if: runner.os == 'macOS'
+      - name: Package with jpackage
         shell: bash
         run: |
           mkdir -p build/pkg
-          jpackage --type dmg \
-            --name DiskAnalyzer \
-            --input target \
-            --main-jar DiskAnalyzer.jar \
-            --runtime-image build/jre \
-            --dest build/pkg
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            jpackage --type ${{ matrix.jpackage-type }} \
+              --name ${{ env.APP_NAME }} \
+              --input target \
+              --main-jar DiskAnalyzer.jar \
+              --runtime-image build/jre \
+              --dest build/pkg \
+              --app-version ${{ env.APP_VERSION }} \
+              --vendor "DiskAnalyzer Team" \
+              --description "Disk Space Analyzer - Liquid Glass Edition" \
+              ${{ matrix.jpackage-args }}
+          else
+            jpackage --type ${{ matrix.jpackage-type }} \
+              --name ${{ env.APP_NAME }} \
+              --input target \
+              --main-jar DiskAnalyzer.jar \
+              --runtime-image build/jre \
+              --dest build/pkg \
+              --app-version ${{ env.APP_VERSION }} \
+              --vendor "DiskAnalyzer Team" \
+              --description "Disk Space Analyzer - Liquid Glass Edition" \
+              ${{ matrix.jpackage-args }}
+          fi
 
-      - name: Package with jpackage (Linux)
-        if: runner.os == 'Linux'
+      - name: Rename artifact
         shell: bash
         run: |
-          sudo apt-get update && sudo apt-get install -y fakeroot dpkg
-          mkdir -p build/pkg
-          jpackage --type deb \
-            --name DiskAnalyzer \
-            --input target \
-            --main-jar DiskAnalyzer.jar \
-            --runtime-image build/jre \
-            --dest build/pkg \
-            --linux-deb-maintainer "Y33988"
-
-      - name: List build output
-        shell: bash
-        run: |
-          echo "=== Build contents ==="
-          ls -la build/pkg/
+          cd build/pkg
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            for f in *.exe; do
+              mv "$f" "DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}.exe"
+            done
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            for f in *.dmg; do
+              mv "$f" "DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}.dmg"
+            done
+          else
+            for f in *.deb; do
+              mv "$f" "DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}.deb"
+            done
+          fi
+          ls -la
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DiskAnalyzer-v3.0-${{ matrix.platform }}
-          path: build/pkg/
+          name: DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}
+          path: build/pkg/*
           retention-days: 30
 
   release:
@@ -150,17 +158,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          merge-multiple: true
 
       - name: List artifacts
         shell: bash
         run: |
           echo "=== Artifacts ==="
-          find artifacts/ -type f
+          find artifacts/ -type f -ls
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          files: artifacts/*
           draft: false
           prerelease: false
           generate_release_notes: true
