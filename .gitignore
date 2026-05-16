@@ -1,7 +1,10 @@
 # Build output
-target/classes/
+target/
+build/
 dist/
 *.zip
+*.class
+*.jar
 
 # IDE
 .idea/
