@@ -147,7 +147,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: DiskAnalyzer-v3.0-${{ matrix.platform }}
-          path: build/pkg/
+          path: |
+            build/pkg/
+            install*
+            INSTALL.md
           retention-days: 30
 
   release:
