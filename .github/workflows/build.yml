@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Setup Liberica JDK (with JavaFX)
-        uses: bell-sw/liberica-runtime-actions@main
+        uses: bell-sw/action-install-jdk@main
         with:
           java-version: ${{ env.JAVA_VERSION }}
           java-package: jdk-full
