@@ -159,6 +159,157 @@ on:
 
 env:
   JAVA_VERSION: '21'
+  APP_NAME: 'DiskAnalyzer'
+  APP_VERSION: ${{ github.ref_name }}
+
+jobs:
+  build:
+    name: Build on ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: Windows-x64
+            jpackage-type: 'exe'
+            jpackage-args: '--win-dir-chooser --win-menu --win-shortcut'
+          - os: macos-latest
+            platform: macOS-aarch64
+            jpackage-type: 'dmg'
+            jpackage-args: ''
+          - os: ubuntu-latest
+            platform: Linux-x64
+            jpackage-type: 'deb'
+            jpackage-args: '--linux-deb-maintainer "DiskAnalyzer Team" --linux-shortcut'
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Liberica JDK (with JavaFX)
+        uses: bell-sw/liberica-runtime-actions@main
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          java-package: jdk-full
+          cache: maven
+
+      - name: Verify JDK and JavaFX
+        shell: bash
+        run: |
+          java -version
+          javac -version
+          echo "JAVA_HOME=$JAVA_HOME"
+          ls -la "$JAVA_HOME/jmods" | grep javafx || true
+
+      - name: Compile Java sources
+        shell: bash
+        run: |
+          mkdir -p target/classes
+          cp -r src/main/resources/* target/classes/
+          javac -d target/classes \
+            --module-path "$JAVA_HOME/jmods" \
+            --add-modules javafx.controls,javafx.fxml \
+            $(find src/main/java -name "*.java")
+
+      - name: Create JAR
+        shell: bash
+        run: |
+          jar cfe target/DiskAnalyzer.jar com.diskanalyzer.GlassDiskAnalyzerApp -C target/classes .
+
+      - name: Create custom JRE with jlink
+        shell: bash
+        run: |
+          jlink \
+            --module-path "$JAVA_HOME/jmods" \
+            --add-modules java.base,java.desktop,java.logging,java.prefs,java.xml,javafx.controls,javafx.fxml,javafx.graphics,javafx.base \
+            --output build/jre \
+            --compress=2 \
+            --strip-debug \
+            --no-header-files \
+            --no-man-pages
+
+      - name: Package with jpackage
+        shell: bash
+        run: |
+          mkdir -p build/pkg
+          jpackage --type ${{ matrix.jpackage-type }} \
+            --name ${{ env.APP_NAME }} \
+            --input target \
+            --main-jar DiskAnalyzer.jar \
+            --runtime-image build/jre \
+            --dest build/pkg \
+            --app-version ${{ env.APP_VERSION }} \
+            --vendor "DiskAnalyzer Team" \
+            --description "Disk Space Analyzer - Liquid Glass Edition" \
+            ${{ matrix.jpackage-args }}
+
+      - name: Rename artifact
+        shell: bash
+        run: |
+          cd build/pkg
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            for f in *.exe; do
+              mv "$f" "DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}.exe"
+            done
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            for f in *.dmg; do
+              mv "$f" "DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}.dmg"
+            done
+          else
+            for f in *.deb; do
+              mv "$f" "DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}.deb"
+            done
+          fi
+          ls -la
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DiskAnalyzer-${{ env.APP_VERSION }}-${{ matrix.platform }}
+          path: build/pkg/*
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - name: List artifacts
+        shell: bash
+        run: |
+          echo "=== Artifacts ==="
+          find artifacts/ -type f -ls
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+name: Build and Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  JAVA_VERSION: '21'
   JAVA_DISTRO: 'temurin'
   JAVAFX_VERSION: '21.0.6'
   APP_NAME: 'DiskAnalyzer'
