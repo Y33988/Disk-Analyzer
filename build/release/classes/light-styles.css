@@ -1,0 +1,423 @@
+/* 浅色模式主题样式 */
+.root {
+    -fx-font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+    -fx-background-color: transparent;
+}
+
+/* 背景渐变层 */
+.background-gradient {
+    -fx-background-color: linear-gradient(
+        to bottom right,
+        #f5f5f5 0%,
+        #e0e0e0 50%,
+        #ffffff 100%
+    );
+}
+
+/* 浅色背景容器 */
+.glass-container {
+    -fx-background-color: rgba(255, 255, 255, 0.8);
+    -fx-background-radius: 16px;
+    -fx-effect: innershadow(
+        gaussian,
+        rgba(0, 0, 0, 0.05),
+        10,
+        0.5,
+        0,
+        0
+    );
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+    -fx-border-radius: 16px;
+    -fx-border-width: 1;
+}
+
+/* 浅色面板 */
+.glass-panel {
+    -fx-background-color: linear-gradient(
+        from 0% 0% to 100% 100%,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(250, 250, 250, 0.9) 100%
+    );
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 10, 0.3, 0, 2);
+    -fx-border-color: rgba(0, 0, 0, 0.1);
+    -fx-border-radius: 12px;
+    -fx-border-width: 1;
+}
+
+/* 浅色标题栏 */
+.glass-title-bar {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(240, 240, 240, 0.9) 100%
+    );
+    -fx-background-radius: 16px 16px 0 0;
+    -fx-padding: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 5, 0.2, 0, 2);
+}
+
+/* 浅色按钮 */
+.glass-button {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(240, 240, 240, 0.8) 100%
+    );
+    -fx-background-radius: 8px;
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 18px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 5, 0.3, 0, 1);
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+    -fx-border-radius: 8px;
+    -fx-border-width: 1;
+}
+
+.glass-button:hover {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        rgba(240, 240, 240, 0.9) 0%,
+        rgba(230, 230, 230, 0.8) 100%
+    );
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0.4, 0, 2);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+.glass-button:pressed {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        rgba(230, 230, 230, 0.9) 0%,
+        rgba(220, 220, 220, 0.8) 100%
+    );
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+.glass-button:disabled {
+    -fx-opacity: 0.5;
+    -fx-effect: none;
+}
+
+/* 主要按钮样式 */
+.glass-button-primary {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        #64B5F6 0%,
+        #2196F3 100%
+    );
+    -fx-background-radius: 8px;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 18px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(33, 150, 243, 0.3), 8, 0.4, 0, 1);
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-radius: 8px;
+    -fx-border-width: 1;
+}
+
+.glass-button-primary:hover {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        #90CAF9 0%,
+        #42A5F5 100%
+    );
+}
+
+/* 危险按钮 */
+.glass-button-danger {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        #ef5350 0%,
+        #d32f2f 100%
+    );
+    -fx-background-radius: 8px;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 18px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(239, 83, 80, 0.3), 8, 0.4, 0, 1);
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-radius: 8px;
+    -fx-border-width: 1;
+}
+
+/* 浅色文本输入框 */
+.glass-text-field {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-radius: 8px;
+    -fx-text-fill: #333333;
+    -fx-prompt-text-fill: rgba(0, 0, 0, 0.4);
+    -fx-font-size: 13px;
+    -fx-padding: 10px;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0.5, 0, 0);
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+    -fx-border-radius: 8px;
+    -fx-border-width: 1;
+}
+
+.glass-text-field:focused {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-border-color: #2196F3;
+}
+
+/* 浅色标签 */
+.glass-label {
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+}
+
+.glass-label-title {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Microsoft YaHei UI", "Segoe UI Emoji", sans-serif;
+}
+
+.glass-label-highlight {
+    -fx-text-fill: #1976D2;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+}
+
+.version-label {
+    -fx-text-fill: rgba(0, 0, 0, 0.4);
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+    -fx-font-family: "Microsoft YaHei UI", sans-serif;
+}
+
+/* 进度条 */
+.glass-progress-bar {
+    -fx-accent: #2196F3;
+    -fx-background-color: rgba(0, 0, 0, 0.1);
+    -fx-background-radius: 10px;
+    -fx-padding: 3px;
+}
+
+.glass-progress-bar > .bar {
+    -fx-background-color: linear-gradient(
+        to right,
+        #64B5F6 0%,
+        #2196F3 100%
+    );
+    -fx-background-radius: 8px;
+}
+
+/* 表格 */
+.glass-table-view {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-radius: 12px;
+    -fx-table-cell-border-color: transparent;
+    -fx-border-color: rgba(0, 0, 0, 0.1);
+    -fx-border-radius: 12px;
+}
+
+.glass-table-view .column-header-background {
+    -fx-background-color: rgba(0, 0, 0, 0.05);
+    -fx-background-radius: 12px 12px 0 0;
+}
+
+.glass-table-view .column-header .label {
+    -fx-text-fill: #333333;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-font-family: "Microsoft YaHei UI", sans-serif;
+}
+
+.glass-table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent rgba(0, 0, 0, 0.05) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.glass-table-view .table-row-cell:hover {
+    -fx-background-color: rgba(33, 150, 243, 0.1);
+}
+
+.glass-table-view .table-row-cell:selected {
+    -fx-background-color: rgba(33, 150, 243, 0.2);
+}
+
+.glass-table-view .table-cell {
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+    -fx-padding: 8px;
+    -fx-alignment: center-left;
+}
+
+/* 树形视图 */
+.glass-tree-view {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-radius: 12px;
+    -fx-border-color: rgba(0, 0, 0, 0.1);
+    -fx-border-radius: 12px;
+}
+
+.glass-tree-view .tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+    -fx-padding: 4px 8px;
+    -fx-cursor: hand;
+}
+
+.glass-tree-view .tree-cell:hover {
+    -fx-background-color: rgba(33, 150, 243, 0.1);
+}
+
+.glass-tree-view .tree-cell:selected {
+    -fx-background-color: rgba(33, 150, 243, 0.2);
+    -fx-text-fill: #1976D2;
+}
+
+/* 滚动条 */
+.glass-scroll-bar {
+    -fx-background-color: rgba(0, 0, 0, 0.05);
+    -fx-background-radius: 8px;
+    -fx-pref-width: 10px;
+}
+
+.glass-scroll-bar .thumb {
+    -fx-background-color: rgba(0, 0, 0, 0.2);
+    -fx-background-radius: 8px;
+}
+
+.glass-scroll-bar .thumb:hover {
+    -fx-background-color: rgba(33, 150, 243, 0.4);
+}
+
+.glass-scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+/* 下拉框 */
+.glass-combo-box {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-radius: 8px;
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+}
+
+.glass-combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-padding: 5px 8px;
+    -fx-font-size: 13px;
+    -fx-font-family: "Microsoft YaHei UI", sans-serif;
+}
+
+.glass-combo-box:hover {
+    -fx-border-color: rgba(33, 150, 243, 0.5);
+}
+
+/* 复选框 */
+.glass-check-box {
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-font-family: "Microsoft YaHei UI", sans-serif;
+    -fx-cursor: hand;
+}
+
+.glass-check-box .box {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-border-color: rgba(0, 0, 0, 0.3);
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.glass-check-box:selected .box {
+    -fx-background-color: #2196F3;
+    -fx-border-color: #2196F3;
+}
+
+/* 分割面板 */
+.glass-split-pane {
+    -fx-background-color: transparent;
+}
+
+.glass-split-pane .split-pane-divider {
+    -fx-background-color: rgba(0, 0, 0, 0.1);
+    -fx-padding: 0 3;
+    -fx-cursor: h-resize;
+}
+
+.glass-split-pane .split-pane-divider:hover {
+    -fx-background-color: rgba(33, 150, 243, 0.3);
+}
+
+/* 状态栏 */
+.glass-status-bar {
+    -fx-background-color: rgba(0, 0, 0, 0.03);
+    -fx-background-radius: 0 0 16px 16px;
+    -fx-padding: 10px 15px;
+    -fx-border-color: rgba(0, 0, 0, 0.1);
+    -fx-border-width: 1 0 0 0;
+}
+
+/* 弹出菜单 */
+.glass-context-menu {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-background-radius: 8px;
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+    -fx-border-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 15, 0.3, 0, 5);
+}
+
+.glass-context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-padding: 8px 12px;
+}
+
+.glass-context-menu .menu-item:hover {
+    -fx-background-color: rgba(33, 150, 243, 0.15);
+}
+
+/* 工具提示 */
+.glass-tooltip {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-text-fill: #333333;
+    -fx-font-size: 12px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 10px;
+}
+
+/* 关闭按钮 */
+.close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-font-size: 16px;
+    -fx-cursor: hand;
+    -fx-font-family: "Segoe UI Emoji", sans-serif;
+}
+
+.close-button:hover {
+    -fx-background-color: rgba(244, 67, 54, 0.3);
+    -fx-background-radius: 50%;
+}
+
+/* 最小化按钮 */
+.minimize-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-font-size: 16px;
+    -fx-cursor: hand;
+    -fx-font-family: "Segoe UI Emoji", sans-serif;
+}
+
+.minimize-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.1);
+    -fx-background-radius: 50%;
+}

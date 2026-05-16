@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane fx:id="glassBorderPane" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.diskanalyzer.controller.GlassMainController">
+    
+    <center>
+        <VBox fx:id="mainContainer" styleClass="background-gradient">
+            
+            <!-- 标题栏 -->
+            <HBox fx:id="topTitleBar" styleClass="glass-title-bar" alignment="CENTER_LEFT" spacing="15">
+                <padding>
+                    <Insets left="20" right="10" top="10" bottom="10"/>
+                </padding>
+                <Label text="磁盘空间分析器" styleClass="app-title-label"/>
+                <Label text="v3.0" styleClass="version-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="minimizeButton" text="─" styleClass="minimize-button"/>
+                <Button fx:id="closeButton" text="✕" styleClass="close-button"/>
+            </HBox>
+            
+            <!-- 主内容区域 -->
+            <VBox VBox.vgrow="ALWAYS" spacing="12" styleClass="glass-container">
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+                
+                <!-- 顶部控制面板 -->
+                <VBox spacing="12" styleClass="glass-panel">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                    
+                    <!-- 路径选择行 -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <padding>
+                            <Insets top="3" bottom="3"/>
+                        </padding>
+                        <Label text="路径:" styleClass="glass-label"/>
+                        <TextField fx:id="pathField" styleClass="glass-text-field" HBox.hgrow="ALWAYS" 
+                                   promptText="输入或选择要扫描的目录路径"/>
+                        <Button fx:id="scanButton" text="扫描" styleClass="glass-button-primary"/>
+                        <Button fx:id="cancelButton" text="取消" styleClass="glass-button" disable="true"/>
+                    </HBox>
+                    
+                    <!-- 搜索和控制行 -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <padding>
+                            <Insets top="3" bottom="3"/>
+                        </padding>
+                        <Label text="🔎 搜索:" styleClass="glass-label"/>
+                        <TextField fx:id="searchField" styleClass="glass-text-field" prefWidth="180"
+                                   promptText="输入文件名搜索"/>
+                        <Button fx:id="searchButton" text="搜索" styleClass="glass-button"/>
+                        
+                        <Region HBox.hgrow="ALWAYS"/>
+                        
+                        <Label text="排序:" styleClass="glass-label"/>
+                        <ComboBox fx:id="sortComboBox" styleClass="glass-combo-box" prefWidth="120">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="按大小排序"/>
+                                    <String fx:value="按名称排序"/>
+                                    <String fx:value="按类型排序"/>
+                                    <String fx:value="按修改时间排序"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                        
+                        <Label text="主题:" styleClass="glass-label"/>
+                        <ComboBox fx:id="themeComboBox" styleClass="glass-combo-box" prefWidth="110">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="液态玻璃"/>
+                                    <String fx:value="深色模式"/>
+                                    <String fx:value="浅色模式"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                        
+                        <CheckBox fx:id="showHiddenCheckBox" text="显示隐藏文件" styleClass="glass-check-box"/>
+                        
+                        <Button fx:id="exportButton" text="导出" styleClass="glass-button"/>
+                        <Button fx:id="advancedFeaturesButton" text="高级功能" styleClass="glass-button"/>
+                        <Button fx:id="settingsButton" text="设置" styleClass="glass-button"/>
+                    </HBox>
+                </VBox>
+                
+                <!-- 进度条和状态 -->
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="glass-panel">
+                    <padding>
+                        <Insets top="10" right="12" bottom="10" left="12"/>
+                    </padding>
+                    <ProgressBar fx:id="progressBar" visible="false" prefWidth="200" styleClass="glass-progress-bar"/>
+                    <Label fx:id="statusLabel" text="就绪" styleClass="glass-label" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="totalSizeLabel" text="总大小: 0 B" styleClass="glass-label-highlight"/>
+                </HBox>
+                
+                <!-- 主分割面板 -->
+                <SplitPane fx:id="mainSplitPane" styleClass="glass-split-pane" VBox.vgrow="ALWAYS" dividerPositions="0.3">
+                    
+                    <!-- 左侧树形视图 -->
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets left="8" right="8" top="8" bottom="8"/>
+                        </padding>
+                        <Label text="目录结构" styleClass="glass-label-title"/>
+                        <TreeView fx:id="fileTreeView" VBox.vgrow="ALWAYS" styleClass="glass-tree-view"/>
+                    </VBox>
+                    
+                    <!-- 右侧区域 -->
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets left="8" right="8" top="8" bottom="8"/>
+                        </padding>
+                        <!-- 可视化面板 -->
+                        <VBox spacing="8">
+                            <Label text="磁盘占用可视化" styleClass="glass-label-title"/>
+                            <Pane fx:id="visualizationPane" VBox.vgrow="ALWAYS" 
+                                  maxHeight="280" minHeight="120" prefHeight="200"/>
+                        </VBox>
+                        
+                        <!-- 表格面板 -->
+                        <VBox spacing="8" VBox.vgrow="ALWAYS">
+                            <Label text="文件详情 (双击文件夹进入)" styleClass="glass-label-title"/>
+                            <TableView fx:id="fileTableView" VBox.vgrow="ALWAYS" styleClass="glass-table-view">
+                                <placeholder>
+                                    <Label text="选择目录进行扫描以查看文件详情" styleClass="glass-label"/>
+                                </placeholder>
+                            </TableView>
+                            
+                            <!-- 文件操作按钮 -->
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <padding>
+                                    <Insets top="5" bottom="5"/>
+                                </padding>
+                                <Button fx:id="goUpButton" text="返回上级" styleClass="glass-button"/>
+                                <Button fx:id="deleteButton" text="删除文件" styleClass="glass-button-danger" disable="true"/>
+                                 <Button fx:id="recycleButton" text="移到回收站" styleClass="glass-button" disable="true"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </SplitPane>
+            </VBox>
+            
+            <!-- 底部状态栏 -->
+            <HBox styleClass="glass-status-bar" alignment="CENTER_LEFT" spacing="15">
+                <padding>
+                    <Insets top="10" right="15" bottom="10" left="15"/>
+                </padding>
+                <Label text="提示: 双击文件夹可进入目录" styleClass="glass-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="© 2026 Disk Analyzer v3.0 Liquid Glass" styleClass="glass-label"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>
