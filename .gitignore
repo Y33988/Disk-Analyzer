@@ -1,0 +1,20 @@
+# Build output
+target/classes/
+dist/
+*.zip
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Compiled classes
+*.class
+
+# Temp files
+compile_errors.txt
+lib/0.txt
