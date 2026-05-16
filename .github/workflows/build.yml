@@ -16,38 +16,47 @@ jobs:
           - os: windows-latest
             platform: Windows-x64
             archive-ext: zip
+            jdk-url: "https://download.java.net/java/GA/jdk25.0.3/95548e8c5e4b4d99a548cd2e77f99c99/9/GPL/openjdk-25.0.3_windows-x64_bin.zip"
+            javafx-url: "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_windows-x64_bin-sdk.zip"
           - os: macos-latest
             platform: macOS-aarch64
             archive-ext: dmg
+            jdk-url: "https://download.java.net/java/GA/jdk25.0.3/95548e8c5e4b4d99a548cd2e77f99c99/9/GPL/openjdk-25.0.3_macos-aarch64_bin.tar.gz"
+            javafx-url: "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_osx-aarch64_bin-sdk.zip"
           - os: ubuntu-latest
             platform: Linux-x64
             archive-ext: deb
+            jdk-url: "https://download.java.net/java/GA/jdk25.0.3/95548e8c5e4b4d99a548cd2e77f99c99/9/GPL/openjdk-25.0.3_linux-x64_bin.tar.gz"
+            javafx-url: "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_linux-x64_bin-sdk.zip"
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup JDK 25
-        uses: oracle-actions/setup-java@v1
-        with:
-          website: jdk.java.net
-          release: 25
-
-      - name: Download JavaFX SDK
+      - name: Install JDK 25
         shell: bash
         run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            curl -L "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_windows-x64_bin-sdk.zip" -o javafx.zip
-            unzip javafx.zip
-            echo "JAVAFX_PATH=$(pwd)/javafx-sdk-25.0.3" >> $GITHUB_ENV
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            curl -L "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_osx-aarch64_bin-sdk.zip" -o javafx.zip
-            unzip javafx.zip
-            echo "JAVAFX_PATH=$(pwd)/javafx-sdk-25.0.3" >> $GITHUB_ENV
+          curl -L -o jdk.zip "${{ matrix.jdk-url }}"
+          mkdir -p jdk25
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            unzip jdk.zip -d jdk25
+            # Move from nested folder
+            mv jdk25/jdk-*/* jdk25/ 2>/dev/null || true
+            echo "JAVA_HOME=$(pwd)/jdk25" >> $GITHUB_ENV
+            echo "$(pwd)/jdk25/bin" >> $GITHUB_PATH
           else
-            curl -L "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_linux-x64_bin-sdk.zip" -o javafx.zip
-            unzip javafx.zip
-            echo "JAVAFX_PATH=$(pwd)/javafx-sdk-25.0.3" >> $GITHUB_ENV
+            tar xzf jdk.zip -C jdk25 --strip-components=1
+            echo "JAVA_HOME=$(pwd)/jdk25" >> $GITHUB_ENV
+            echo "$(pwd)/jdk25/bin" >> $GITHUB_PATH
           fi
+          java -version
+          javac -version
+
+      - name: Install JavaFX SDK
+        shell: bash
+        run: |
+          curl -L -o javafx.zip "${{ matrix.javafx-url }}"
+          unzip -q javafx.zip
+          echo "JAVAFX_PATH=$(pwd)/javafx-sdk-25.0.3" >> $GITHUB_ENV
 
       - name: Compile Java sources
         shell: bash
@@ -67,15 +76,20 @@ jobs:
       - name: Create custom JRE with jlink
         shell: bash
         run: |
-          JAVA_HOME="${{ runner.tool_cache }}/jdk-25" || JAVA_HOME=$(dirname $(dirname $(which java)))
           jlink \
-            --module-path "$JAVAFX_PATH/lib:${JAVA_HOME}/jmods" \
+            --module-path "$JAVAFX_PATH/lib:$JAVA_HOME/jmods" \
             --add-modules java.base,java.desktop,java.logging,java.prefs,java.xml,javafx.controls,javafx.fxml,javafx.graphics,javafx.base \
             --output build/jre \
             --compress=2 \
             --strip-debug \
             --no-header-files \
             --no-man-pages
+
+      - name: Install WiX Toolset (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          dotnet tool install --global wix
+          wix --version
 
       - name: Package with jpackage
         shell: bash
@@ -88,7 +102,6 @@ jobs:
               --main-jar DiskAnalyzer.jar \
               --runtime-image build/jre \
               --dest build/pkg
-            7z a "build/DiskAnalyzer-v3.0-${{ matrix.platform }}.zip" "build/pkg/DiskAnalyzer"
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             jpackage --type dmg \
               --name DiskAnalyzer \
@@ -97,6 +110,7 @@ jobs:
               --runtime-image build/jre \
               --dest build/pkg
           else
+            sudo apt-get update && sudo apt-get install -y fakeroot dpkg
             jpackage --type deb \
               --name DiskAnalyzer \
               --input target \
