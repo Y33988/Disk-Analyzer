@@ -6,6 +6,11 @@ on:
     tags:
       - 'v*'
 
+env:
+  JAVA_VERSION: '21'
+  JAVA_DISTRO: 'temurin'
+  JAVAFX_VERSION: '21.0.6'
+
 jobs:
   build:
     name: Build on ${{ matrix.os }}
@@ -15,61 +20,35 @@ jobs:
         include:
           - os: windows-latest
             platform: Windows-x64
-            javafx-url: "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_windows-x64_bin-sdk.zip"
-            jdk-url: "https://download.java.net/java/GA/jdk25.0.3/95548e8c5e4b4d99a548cd2e77f99c99/9/GPL/openjdk-25.0.3_windows-x64_bin.zip"
-            jdk-ext: "zip"
+            javafx-classifier: 'windows'
           - os: macos-latest
             platform: macOS-aarch64
-            javafx-url: "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_osx-aarch64_bin-sdk.zip"
-            jdk-url: "https://download.java.net/java/GA/jdk25.0.3/95548e8c5e4b4d99a548cd2e77f99c99/9/GPL/openjdk-25.0.3_macos-aarch64_bin.tar.gz"
-            jdk-ext: "tar.gz"
+            javafx-classifier: 'mac-aarch64'
           - os: ubuntu-latest
             platform: Linux-x64
-            javafx-url: "https://download2.gluonhq.com/openjfx/25.0.3/openjfx-25.0.3_linux-x64_bin-sdk.zip"
-            jdk-url: "https://download.java.net/java/GA/jdk25.0.3/95548e8c5e4b4d99a548cd2e77f99c99/9/GPL/openjdk-25.0.3_linux-x64_bin.tar.gz"
-            jdk-ext: "tar.gz"
+            javafx-classifier: 'linux'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Setup JDK 25 (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRO }}
+
+      - name: Verify JDK
         run: |
-          curl -L -o jdk.zip "${{ matrix.jdk-url }}"
-          Expand-Archive -Path jdk.zip -DestinationPath jdk25
-          $jdkDir = Get-ChildItem -Path jdk25 -Directory | Select-Object -First 1
-          Move-Item -Path "jdk25/$($jdkDir.Name)/*" -Destination jdk25 -Force
-          echo "JAVA_HOME=$(Get-Location)\jdk25" >> $env:GITHUB_ENV
-          echo "$(Get-Location)\jdk25\bin" >> $env:GITHUB_PATH
           java -version
+          javac -version
+          echo "JAVA_HOME=$JAVA_HOME"
 
-      - name: Setup JDK 25 (Unix)
-        if: matrix.os != 'windows-latest'
+      - name: Download JavaFX SDK
         shell: bash
         run: |
-          curl -L -o jdk.tar.gz "${{ matrix.jdk-url }}"
-          mkdir -p jdk25
-          tar xzf jdk.tar.gz -C jdk25 --strip-components=1
-          echo "JAVA_HOME=$(pwd)/jdk25" >> $GITHUB_ENV
-          echo "$(pwd)/jdk25/bin" >> $GITHUB_PATH
-          java -version
-
-      - name: Download JavaFX SDK (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          curl -L -o javafx.zip "${{ matrix.javafx-url }}"
-          Expand-Archive -Path javafx.zip -DestinationPath .
-          echo "JAVAFX_PATH=$(Get-Location)\javafx-sdk-25.0.3" >> $env:GITHUB_ENV
-
-      - name: Download JavaFX SDK (Unix)
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: |
-          curl -L -o javafx.zip "${{ matrix.javafx-url }}"
+          curl -L -o javafx.zip "https://download2.gluonhq.com/openjfx/${{ env.JAVAFX_VERSION }}/openjfx-${{ env.JAVAFX_VERSION }}_${{ matrix.javafx-classifier }}-sdk.zip"
           unzip -q javafx.zip
-          echo "JAVAFX_PATH=$(pwd)/javafx-sdk-25.0.3" >> $GITHUB_ENV
+          echo "JAVAFX_PATH=$(pwd)/javafx-sdk-${{ env.JAVAFX_VERSION }}" >> $GITHUB_ENV
 
       - name: Compile Java sources
         shell: bash
@@ -102,14 +81,15 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          dotnet tool install --global wix --version 5.0.0
-          dotnet-wix --version
+          dotnet tool install --global wix --version 5.*
+          echo "C:\Users\runneradmin\.dotnet\tools" >> $env:GITHUB_PATH
+          wix --version
 
       - name: Package with jpackage (Windows)
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          mkdir -p build/pkg
+          New-Item -Path build/pkg -ItemType Directory -Force
           jpackage --type app-image `
             --name DiskAnalyzer `
             --input target `
@@ -118,7 +98,7 @@ jobs:
             --dest build/pkg
 
       - name: Package with jpackage (macOS)
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           mkdir -p build/pkg
@@ -130,7 +110,7 @@ jobs:
             --dest build/pkg
 
       - name: Package with jpackage (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           sudo apt-get update && sudo apt-get install -y fakeroot dpkg
@@ -143,14 +123,17 @@ jobs:
             --dest build/pkg \
             --linux-deb-maintainer "Y33988"
 
+      - name: List build output
+        shell: bash
+        run: |
+          echo "=== Build contents ==="
+          ls -la build/pkg/
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: DiskAnalyzer-v3.0-${{ matrix.platform }}
-          path: |
-            build/pkg/
-            install*
-            INSTALL.md
+          path: build/pkg/
           retention-days: 30
 
   release:
@@ -158,13 +141,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+
+      - name: List artifacts
+        shell: bash
+        run: |
+          echo "=== Artifacts ==="
+          find artifacts/ -type f
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
